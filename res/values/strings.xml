@@ -2,7 +2,8 @@
 <resources>
 
     <string name="app_name">Fonely</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="record">Record</string>
+    <string name="playback">Playback</string>
     <string name="action_settings">Settings</string>
 
 </resources>
