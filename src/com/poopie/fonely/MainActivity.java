@@ -2,6 +2,7 @@ package com.poopie.fonely;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 import android.speech.RecognizerIntent;
 import android.support.v7.app.ActionBarActivity;
@@ -23,12 +24,16 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Build;
+import com.microsoft.windowsazure.mobileservices.*;
 
 public class MainActivity extends ActionBarActivity {
+	
+	private MobileServiceClient mClient;
 	
 	//constants
 	protected static final int RESULT_SPEECH = 1;
 	private static final String LOG_TAG = "AudioRecordTest";
+	private static int fileNum = 1;
 	
 	//variables
 	private Button recButt; //record button
@@ -62,8 +67,21 @@ public class MainActivity extends ActionBarActivity {
 		recButtPressed=false; 
 		playButtPressed=false; 
 		player=new MediaPlayer(); 
-		text== (TextView) findViewById(R.id.text);
+		mFile = "fonelyclip";
 		
+		//text = (TextView) findViewById(R.id.text);
+		
+		try {
+			mClient = new MobileServiceClient(
+				      "https://fonely.azure-mobile.net/",
+				      "MPcDeQZZkvxBYoJJYUtodwJYfjHUoA36",
+				      this
+				);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 	
 	//when record button is pressed 
@@ -90,10 +108,12 @@ public class MainActivity extends ActionBarActivity {
 	//starts recording
 	private void startRecording(){
 
+		fileNum++;
+		
 		recorder=new MediaRecorder(); 
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-	    recorder.setOutputFile(Environment.getExternalStorageDirectory().getPath() + "/sound/" + mFile);
+	    recorder.setOutputFile(Environment.getExternalStorageDirectory().getPath() + "/sound/" + mFile + fileNum);
         recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
 	    try {
@@ -137,7 +157,7 @@ public class MainActivity extends ActionBarActivity {
 	private void startPlayback(){
 		
 		try {
-            player.setDataSource(Environment.getExternalStorageDirectory().getPath() + "/sound/" + mFile);
+            player.setDataSource(Environment.getExternalStorageDirectory().getPath() + "/sound/" + mFile + fileNum);
             player.prepare();
             player.start();
         } catch (IOException e) {
@@ -164,7 +184,7 @@ public class MainActivity extends ActionBarActivity {
 
          try {
              startActivityForResult(intent, RESULT_SPEECH);
-             text.setText("");
+             //text.setText("");
          } catch (ActivityNotFoundException a) {
              Toast t = Toast.makeText(getApplicationContext(),
                      "Opps! Your device doesn't support Speech to Text",
@@ -195,3 +215,23 @@ public class MainActivity extends ActionBarActivity {
 
 
 }
+/*
+public class Item {
+    public String Id;
+    public String Text;
+}
+Copy to clipboard
+In the same activity where you defined mClient, add the following code:
+
+Item item = new Item();
+item.Text = "Awesome item";
+mClient.getTable(Item.class).insert(item, new TableOperationCallback<Item>() {
+    public void onCompleted(Item entity, Exception exception, ServiceFilterResponse response) {
+          if (exception == null) {
+                // Insert succeeded
+          } else {
+                // Insert failed
+          }
+    }
+});
+*/
