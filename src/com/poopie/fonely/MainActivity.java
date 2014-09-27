@@ -1,5 +1,6 @@
 package com.poopie.fonely;
 
+import java.io.File;
 import java.io.IOException;
 
 import android.support.v7.app.ActionBarActivity;
@@ -8,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,11 +35,22 @@ public class MainActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+		
+		File folder = new File(Environment.getExternalStorageDirectory() + "/sound");
+		boolean success = true;
+		if (!folder.exists()) {
+		    success = folder.mkdir();
+		}
+		if (success) {
+            Log.e(LOG_TAG, "Folder created");
+		} else {
+            Log.e(LOG_TAG, "Folder creation failed"); 
+		}
+		
 		recButt=(Button)findViewById(R.id.record_butt);
 		playRecButt=(Button)findViewById(R.id.playback_butt); 
 		recButtPressed=false; 
 		playButtPressed=false; 
-		recorder=new MediaRecorder(); 
 		player=new MediaPlayer(); 
 		
 	}
@@ -65,12 +78,12 @@ public class MainActivity extends ActionBarActivity {
 	
 	//starts recording
 	private void startRecording(){
-		
-		recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-	    recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-	    recorder.setOutputFile(mFile);
-	    recorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-	    recorder.setOutputFile("/sdcard/sound/" + mFile);
+
+		recorder=new MediaRecorder(); 
+        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+	    recorder.setOutputFile(Environment.getExternalStorageDirectory().getPath() + "/sound/" + mFile);
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
 	    try {
             recorder.prepare();
@@ -113,7 +126,7 @@ public class MainActivity extends ActionBarActivity {
 	private void startPlayback(){
 		
 		try {
-            player.setDataSource(mFile);
+            player.setDataSource(Environment.getExternalStorageDirectory().getPath() + "/sound/" + mFile);
             player.prepare();
             player.start();
         } catch (IOException e) {
