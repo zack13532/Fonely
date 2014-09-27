@@ -3,9 +3,12 @@ package com.poopie.fonely;
 import java.io.File;
 import java.io.IOException;
 
+import android.speech.RecognizerIntent;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
@@ -17,11 +20,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 import android.os.Build;
 
 public class MainActivity extends ActionBarActivity {
 	
+	//constants
+	protected static final int RESULT_SPEECH = 1;
 	private static final String LOG_TAG = "AudioRecordTest";
+	
+	//variables
 	private Button recButt; //record button
 	private Button playRecButt; //play recording button 
 	private boolean recButtPressed; //whether or not Rec button has been pressed 
@@ -29,6 +38,7 @@ public class MainActivity extends ActionBarActivity {
 	private MediaRecorder recorder;
 	private MediaPlayer player; 
 	private String mFile; 
+	private TextView text; 
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +62,7 @@ public class MainActivity extends ActionBarActivity {
 		recButtPressed=false; 
 		playButtPressed=false; 
 		player=new MediaPlayer(); 
+		text== (TextView) findViewById(R.id.text);
 		
 	}
 	
@@ -139,6 +150,27 @@ public class MainActivity extends ActionBarActivity {
 		
 		 player.release();
 	     player = null;
+	}
+	
+	//when submit button is pressed
+	//#TODO Actually send the TextView file 
+	//convert sound to text 
+	public void submitButtonPressed(View view){
+		
+		 Intent intent = new Intent(
+                 RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+
+         try {
+             startActivityForResult(intent, RESULT_SPEECH);
+             text.setText("");
+         } catch (ActivityNotFoundException a) {
+             Toast t = Toast.makeText(getApplicationContext(),
+                     "Opps! Your device doesn't support Speech to Text",
+                     Toast.LENGTH_SHORT);
+             t.show();
+         }
 	}
 	
 	@Override
