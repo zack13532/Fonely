@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import android.util.Log;
+
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.mysql.jdbc.Connection;
@@ -168,7 +170,9 @@ public class DatabaseTools {
 		      return session;
 
 		} catch(Exception e){
+			Log.w("DICKBUTT", "WUZ HERE21");
 			e.printStackTrace();
+			Log.w("DICKBUTT", "WUZ HERE22");
 			return null;
 		}
 		
