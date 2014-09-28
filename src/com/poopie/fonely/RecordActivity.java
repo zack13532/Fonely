@@ -1,28 +1,36 @@
 package com.poopie.fonely;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-import android.speech.RecognizerIntent;
-import android.support.v7.app.ActionBarActivity;
 import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.speech.RecognizerIntent;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.os.Build;
+
+import com.jcraft.jsch.Session;
+import com.mysql.jdbc.Blob;
+import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.PreparedStatement;
 //import com.microsoft.windowsazure.mobileservices.*;
 
 public class RecordActivity extends ActionBarActivity {
@@ -76,8 +84,44 @@ public class RecordActivity extends ActionBarActivity {
 		tmpAudioRec = new File(Environment.getExternalStorageDirectory() + "/sound/audiorec.amr");
 		tmpAudioPlay = new File(Environment.getExternalStorageDirectory() + "/sound/incomingclip.amr");
 
-		//SQL CALL FOR AUDIO CLIP BLOB
-		//save as the tmpAudioPlay file
+		Session session = DatabaseTools.connectToServer();
+		Connection conn = DatabaseTools.startConnection();
+		
+		//TODO: This only works for a single game in the database
+		String query = "SELECT * FROM Games";
+		try {
+			PreparedStatement stmt = (PreparedStatement) conn.prepareStatement(query);
+			ResultSet set = stmt.executeQuery();
+			set.next();
+			FileInputStream fileStream = (FileInputStream) set.getBlob("audio");
+			
+			FileOutputStream outputStream = 
+					new FileOutputStream(tmpAudioPlay.getAbsolutePath());
+			
+			byte[] buffer = new byte[1024];
+			int bytesread = 0;
+			
+			while((bytesread = fileStream.read(buffer)) > 0)
+				outputStream.write(buffer, 0, bytesread);
+			
+			fileStream.close();
+			outputStream.close();
+			set.close();
+			stmt.close();
+			conn.close();
+			session.disconnect();
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		
 	}
 	
@@ -187,6 +231,57 @@ public class RecordActivity extends ActionBarActivity {
 		dbgTV.setText("send button pressed");
 		
 	    //SQL CALL TO SUBMIT AUDIO FILE
+		Session session = DatabaseTools.connectToServer();
+		Connection conn = DatabaseTools.startConnection();
+		String query = "SELECT * from Games";
+		
+		try {
+			//TODO: Some shit (assuming the game already exists in the database)
+			PreparedStatement stmt = (PreparedStatement) conn.prepareStatement(query);
+			ResultSet set = stmt.executeQuery();
+			set.next();
+			
+			int  gameId = set.getInt("game_id");
+			String userList = set.getString("user_list");
+			userList += "dickbutt\n";
+			
+			int roundNo = set.getInt("round_no");
+			roundNo++;
+			
+			set.close();
+			stmt.close();
+			query = "UPDATE Games SET user_list = ?,round_no = ?,audio = ? where game_id = ?";
+			stmt = (PreparedStatement) conn.prepareStatement(query);
+			stmt.setString(1, userList);
+			stmt.setInt(2, roundNo);
+			stmt.setBlob(3, new FileInputStream(tmpAudioRec));
+			stmt.setInt(4, gameId);
+			
+			if (DatabaseTools.isGameOver(gameId)){
+				DatabaseTools.updateUsers(gameId);
+				
+			}
+			
+			stmt.close();
+			
+			query = "INSERT into Rounds Values (?, ?, ?, ?)";
+			stmt = (PreparedStatement) conn.prepareStatement(query);
+			stmt.setInt(1, gameId);
+			stmt.setString(2, "dickbutt");
+			stmt.setInt(3, roundNo - 1);
+			stmt.setString(4, speechText.getText().toString());
+			stmt.execute();
+			stmt.close();
+			conn.close();
+			session.disconnect();
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		tmpAudioRec.delete();
 	}
 	
