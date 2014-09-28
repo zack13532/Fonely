@@ -1,0 +1,50 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/RelativeLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    tools:context=".RecordActivity" >
+
+    <TextView
+        android:id="@+id/speechToText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:minHeight="40dp"
+        android:text="[user's speech to text]"
+        android:textSize="28sp" />
+
+    <Button
+        android:id="@+id/recButt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/speechToText"
+        android:layout_centerHorizontal="true"
+        android:onClick="recordButtonPressed"
+        android:text="Record" />
+
+    <Button
+        android:id="@+id/playbackButt"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/recButt"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:minHeight="38dp"
+        android:minWidth="38dp"
+        android:onClick="playbackButtonPressed"
+        android:text="Replay" />
+
+    <Button
+        android:id="@+id/sendButt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="22dp"
+        android:onClick="sendButtonPressed"
+        android:text="Send" />
+
+</RelativeLayout>

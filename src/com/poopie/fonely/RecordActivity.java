@@ -4,10 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+
 import android.speech.RecognizerIntent;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -24,9 +28,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Build;
-import com.microsoft.windowsazure.mobileservices.*;
+//import com.microsoft.windowsazure.mobileservices.*;
 
-public class MainActivity extends ActionBarActivity {
+public class RecordActivity extends ActionBarActivity {
 	
 	private MobileServiceClient mClient;
 	
@@ -38,18 +42,21 @@ public class MainActivity extends ActionBarActivity {
 	//variables
 	private Button recButt; //record button
 	private Button playRecButt; //play recording button 
+	private Button sendButt; 
 	private boolean recButtPressed; //whether or not Rec button has been pressed 
 	private boolean playButtPressed; 
 	private MediaRecorder recorder;
 	private MediaPlayer player; 
-	private String mFile; 
-	private TextView text; 
+	private String audioFile; 
+	//private TextView text; 
 	
-	@Override
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB) @Override
+	//TODO: sendButt.setActivated(false) fucks out for some reason, check above line later... need
+	// to talk about compatibility issues
+	
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
-		
+		setContentView(R.layout.activity_record);
 		
 		File folder = new File(Environment.getExternalStorageDirectory() + "/sound");
 		boolean success = true;
@@ -62,15 +69,22 @@ public class MainActivity extends ActionBarActivity {
             Log.e(LOG_TAG, "Folder creation failed"); 
 		}
 		
-		recButt=(Button)findViewById(R.id.record_butt);
-		playRecButt=(Button)findViewById(R.id.playback_butt); 
+		//initialize buttons
+		recButt=(Button)findViewById(R.id.recButt);
+		playRecButt=(Button)findViewById(R.id.playbackButt); 
+		sendButt=(Button)findViewById(R.id.sendButt); 
+		playRecButt.setVisibility(View.INVISIBLE); 
+		sendButt.setActivated(false); 
+		
+		//initialize variables
 		recButtPressed=false; 
 		playButtPressed=false; 
+		
+		//initialize audio file-related stuff
 		player=new MediaPlayer(); 
-		mFile = "fonelyclip";
-		
-		//text = (TextView) findViewById(R.id.text);
-		
+		recorder=new MediaRecorder(); 
+		audioFile = "fonelyClip";
+
 		try {
 			mClient = new MobileServiceClient(
 				      "https://fonely.azure-mobile.net/",
@@ -81,26 +95,50 @@ public class MainActivity extends ActionBarActivity {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+//<<<<<<< Updated upstream
+		
+		
+		//text = (TextView) findViewById(R.id.text);
+		/* #TODO mobile service client
+		try {
+			mClient = new MobileServiceClient(
+				      "https://fonely.azure-mobile.net/",
+				      "MPcDeQZZkvxBYoJJYUtodwJYfjHUoA36",
+				      this
+				);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
+//=======
+		 	
+//>>>>>>> Stashed changes
 	}
 	
 	//when record button is pressed 
-	public void recordButtonPressed(View view)
+	@SuppressLint("NewApi") @TargetApi(Build.VERSION_CODES.HONEYCOMB) public void recordButtonPressed(View view)
 	{
 		//if pressed first time, start recording
 		if(!recButtPressed){
 			recButtPressed=true; 
 			recButt.setText("Stop"); 
-			
+			playRecButt.setVisibility(View.INVISIBLE); 
+			sendButt.setActivated(false); 
 			startRecording(); 
+			//TODO implement the animation/audio squiggle
 		}
 		
 		//else if button has already been pressed, end recording 
 		else{
 		
 			recButtPressed=false; 
-			recButt.setText("Record"); 
+			recButt.setText("Rerecord"); 
+			playRecButt.setVisibility(View.VISIBLE); 
+			sendButt.setActivated(true); 
 			stopRecording(); 
+			//TODO implement speechToText
+			
 		}
 		
 	}
@@ -113,7 +151,7 @@ public class MainActivity extends ActionBarActivity {
 		recorder=new MediaRecorder(); 
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-	    recorder.setOutputFile(Environment.getExternalStorageDirectory().getPath() + "/sound/" + mFile + fileNum);
+	    recorder.setOutputFile(Environment.getExternalStorageDirectory().getPath() + "/sound/" + audioFile + fileNum);
         recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
 	    try {
@@ -133,7 +171,7 @@ public class MainActivity extends ActionBarActivity {
 	    recorder.release();
 	    recorder = null;
 	}
-	
+
 	//when playBack button is pressed
 	public void playbackButtonPressed(View view)
 	{
@@ -157,7 +195,7 @@ public class MainActivity extends ActionBarActivity {
 	private void startPlayback(){
 		
 		try {
-            player.setDataSource(Environment.getExternalStorageDirectory().getPath() + "/sound/" + mFile + fileNum);
+            player.setDataSource(Environment.getExternalStorageDirectory().getPath() + "/sound/" + audioFile + fileNum);
             player.prepare();
             player.start();
         } catch (IOException e) {
@@ -171,12 +209,13 @@ public class MainActivity extends ActionBarActivity {
 		 player.release();
 	     player = null;
 	}
-	
+/*	
 	//when submit button is pressed
 	//#TODO Actually send the TextView file 
 	//convert sound to text 
 	public void submitButtonPressed(View view){
 		
+<<<<<<< Updated upstream
 		 Intent intent = new Intent(
                  RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
@@ -191,6 +230,8 @@ public class MainActivity extends ActionBarActivity {
                      Toast.LENGTH_SHORT);
              t.show();
          }
+=======
+>>>>>>> Stashed changes
 	}
 	
 	@Override
@@ -200,7 +241,7 @@ public class MainActivity extends ActionBarActivity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-
+*/
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle action bar item clicks here. The action bar will
