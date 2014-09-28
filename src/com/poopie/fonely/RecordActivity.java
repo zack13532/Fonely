@@ -31,7 +31,6 @@ import com.jcraft.jsch.Session;
 import com.mysql.jdbc.Blob;
 import com.mysql.jdbc.Connection;
 import com.mysql.jdbc.PreparedStatement;
-//import com.microsoft.windowsazure.mobileservices.*;
 
 public class RecordActivity extends ActionBarActivity {
 	
@@ -83,34 +82,47 @@ public class RecordActivity extends ActionBarActivity {
 		player=new MediaPlayer(); 
 		tmpAudioRec = new File(Environment.getExternalStorageDirectory() + "/sound/audiorec.amr");
 		tmpAudioPlay = new File(Environment.getExternalStorageDirectory() + "/sound/incomingclip.amr");
-
+		// Run waiting for players to join thread
+	    new Thread(new Runnable() {
+            @Override
+            public void run() {
+                    try
+                    {
 		Session session = DatabaseTools.connectToServer();
+		session.equals("fuck");
 		Connection conn = DatabaseTools.startConnection();
-		
+		Log.w("DICKBUTT", "WUZ HERE1");
 		//TODO: This only works for a single game in the database
 		String query = "SELECT * FROM Games";
 		try {
 			PreparedStatement stmt = (PreparedStatement) conn.prepareStatement(query);
+			Log.w("DICKBUTT", "WUZ HERE2");
 			ResultSet set = stmt.executeQuery();
+			Log.w("DICKBUTT", "WUZ HERE3");
 			set.next();
+			Log.w("DICKBUTT", "WUZ HERE4");
 			FileInputStream fileStream = (FileInputStream) set.getBlob("audio");
+			Log.w("DICKBUTT", "WUZ HERE5");
 			
 			FileOutputStream outputStream = 
 					new FileOutputStream(tmpAudioPlay.getAbsolutePath());
-			
+
+			Log.w("DICKBUTT", "WUZ HERE6");
 			byte[] buffer = new byte[1024];
 			int bytesread = 0;
 			
 			while((bytesread = fileStream.read(buffer)) > 0)
 				outputStream.write(buffer, 0, bytesread);
-			
+
+			Log.w("DICKBUTT", "WUZ HERE7");
 			fileStream.close();
 			outputStream.close();
 			set.close();
 			stmt.close();
 			conn.close();
 			session.disconnect();
-			
+
+			Log.w("DICKBUTT", "WUZ HERE8");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -120,8 +132,43 @@ public class RecordActivity extends ActionBarActivity {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} catch (NullPointerException e) {
 
+			try {
+				Log.w("DICKBUTT", "WUZ HERE10");
+				query = "INSERT into Rounds Values (?, ?, ?, ?)";
+				PreparedStatement stmt = (PreparedStatement) conn.prepareStatement(query);
+				stmt.setInt(1, 1);
+				stmt.setString(2, "dickbutt");
+				stmt.setInt(3, 1);
+				stmt.setString(4, "dickbutt");
+				stmt.execute();
+
+				query = "UPDATE Games SET user_list = ?,round_no = ?,audio = ? where game_id = ?";
+				stmt = (PreparedStatement) conn.prepareStatement(query);
+				stmt.setString(1, "dickbutt");
+				stmt.setInt(2, 1);
+				stmt.setBlob(3, new FileInputStream(tmpAudioRec));
+				stmt.setInt(4, 1);
+				
+				stmt.close();
+				conn.close();
+				session.disconnect();
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+                    } catch (Exception e) {
+                        // TODO: handle exception
+          }
+            }
+        }).start();
+
+		Log.w("DICKBUTT", "WUZ HERE9");
 		
 	}
 	
@@ -187,7 +234,7 @@ public class RecordActivity extends ActionBarActivity {
 	{
 	    tmpAudioRec.delete();
 	    
-	    // the resulting text is in the getExtras:
+	    // the resulting text is in the getExtras
 	    speechText.setText(data.getExtras().getStringArrayList(RecognizerIntent.EXTRA_RESULTS).get(0));
 	    // the recording url is in getData:
 	    Uri audioUri = data.getData();
