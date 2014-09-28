@@ -32,17 +32,16 @@ public class RecordActivity extends ActionBarActivity {
 	//constants
 	protected static final int RESULT_SPEECH = 1;
 	private static final String LOG_TAG = "AudioRecordTest";
-	private static int fileNum = 1;
 	
 	//variables
-	private Button playRecButt; //play recording button 
-	private Button sendButt; 
+	private Button playButt; //play recording button 
+	private Button sendButt; //send finished recording button
+	private Button recButt; //record button
 	private EditText speechText; 
-	private boolean playButtPressed; 
 	private MediaPlayer player; 
-	private String audioFile; 
 	
-    private File tmpAudio; 
+	private File tmpAudioPlay;
+    private File tmpAudioRec; 
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB) @Override	
 	protected void onCreate(Bundle savedInstanceState) {
@@ -62,40 +61,35 @@ public class RecordActivity extends ActionBarActivity {
 		}
 		
 		//initialize buttons and textviews
-		playRecButt=(Button)findViewById(R.id.playbackButt); 
+		playButt=(Button)findViewById(R.id.playButt); 
 		sendButt=(Button)findViewById(R.id.sendButt); 
+		recButt=(Button)findViewById(R.id.recButt);
 		speechText = (EditText) findViewById(R.id.speechToText);
-		playRecButt.setVisibility(View.INVISIBLE); 
-		sendButt.setActivated(false); 
+		speechText.setVisibility(View.INVISIBLE);
+		sendButt.setVisibility(View.INVISIBLE);
+		recButt.setVisibility(View.INVISIBLE);
 		dbgTV = (TextView) findViewById(R.id.debugText);
 		
-		//initialize variables
-		playButtPressed=false; 
 		
 		//initialize audio file-related stuff
 		player=new MediaPlayer(); 
-		audioFile = "fonelyClip";
-		tmpAudio = new File(Environment.getExternalStorageDirectory() + "/sound/speechrecog.amr");
+		tmpAudioRec = new File(Environment.getExternalStorageDirectory() + "/sound/audiorec.amr");
+		tmpAudioPlay = new File(Environment.getExternalStorageDirectory() + "/sound/incomingclip.amr");
 
+		//SQL CALL FOR AUDIO CLIP BLOB
+		//save as the tmpAudioPlay file
+		
 	}
 	
-	//when playBack button is pressed
-	public void playbackButtonPressed(View view)
+	//when play button is pressed
+	public void playButtonPressed(View view)
 	{
 		
 		//start playing clip
-		if(!playButtPressed){
-			
-			playButtPressed=true; 
-			startPlayback(Environment.getExternalStorageDirectory().getPath() + "/sound/" + audioFile + fileNum); 
-		}
-		
-		//stop playing clip. 
-		else{
-			
-			playButtPressed=false; 
-			stopPlayback(); 
-		}
+		playButt.setVisibility(View.INVISIBLE);
+		startPlayback(tmpAudioPlay.getAbsolutePath());
+		tmpAudioPlay.delete();
+		recButt.setVisibility(View.VISIBLE);
 	}
 	
 	//starts playing data file
@@ -111,12 +105,6 @@ public class RecordActivity extends ActionBarActivity {
         }
 	}
 	
-	//stops playing data file
-	private void stopPlayback(){
-		
-		 player.release();
-	     player = null;
-	}
 	
 	public void startSpeechRecognition()
 	{
@@ -153,9 +141,7 @@ public class RecordActivity extends ActionBarActivity {
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
-	    tmpAudio.delete();
-	    
-	    int[] bitrates = {13, 14, 16, 18, 20, 21, 27, 32};
+	    tmpAudioRec.delete();
 	    
 	    // the resulting text is in the getExtras:
 	    speechText.setText(data.getExtras().getStringArrayList(RecognizerIntent.EXTRA_RESULTS).get(0));
@@ -166,7 +152,7 @@ public class RecordActivity extends ActionBarActivity {
 	    try {
 			InputStream filestream = contentResolver.openInputStream(audioUri);
 			FileOutputStream audioFileOut =
-					new FileOutputStream(tmpAudio.getAbsolutePath());
+					new FileOutputStream(tmpAudioRec.getAbsolutePath());
 			int bytesread = 0;
 			byte[] buffer = new byte[1024];
 			while((bytesread = filestream.read(buffer)) > 0)
@@ -183,7 +169,10 @@ public class RecordActivity extends ActionBarActivity {
 			e.printStackTrace();
 		}
 	    
-	    startPlayback(tmpAudio.getAbsolutePath());
+	    sendButt.setVisibility(View.VISIBLE);
+	    speechText.setVisibility(View.VISIBLE);
+	    
+	    startPlayback(tmpAudioRec.getAbsolutePath());
 	}
 		
 	//when submit button is pressed
@@ -196,15 +185,16 @@ public class RecordActivity extends ActionBarActivity {
 	public void sendButtonPressed(View view)
 	{
 		dbgTV.setText("send button pressed");
-	    // CALL TO SQL SERVER TO SUBMIT AUDIO FILE
-		tmpAudio.delete();
+		
+	    //SQL CALL TO SUBMIT AUDIO FILE
+		tmpAudioRec.delete();
 	}
 	
 	@Override
 	public void onDestroy()
 	{
 		super.onDestroy();
-		tmpAudio.delete();
+		tmpAudioRec.delete();
 	}
 
 }

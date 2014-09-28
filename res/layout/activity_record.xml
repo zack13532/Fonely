@@ -12,30 +12,21 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:minHeight="40dp"
+        android:inputType="text"
         android:text=""
         android:textSize="28sp" />
 
     <Button
-        android:id="@+id/recButt"
+        android:id="@+id/playButt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/speechToText"
         android:layout_centerHorizontal="true"
-        android:onClick="recordButtonPressed"
-        android:text="Record" />
-
-    <Button
-        android:id="@+id/playbackButt"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/recButt"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="60dp"
+        android:layout_alignParentTop="true"
         android:minHeight="38dp"
         android:minWidth="38dp"
-        android:onClick="playbackButtonPressed"
-        android:text="Replay" />
+        android:onClick="playButtonPressed"
+        android:text="Play Clip" />
 
     <Button
         android:id="@+id/sendButt"
@@ -54,5 +45,15 @@
         android:layout_centerInParent="true"
         android:layout_alignParentTop="true"
         android:textSize="14sp"/>
+
+    <Button
+        android:id="@+id/recButt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/playButt"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp"
+        android:onClick="recordButtonPressed"
+        android:text="Record" />
 
 </RelativeLayout>
