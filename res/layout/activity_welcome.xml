@@ -15,7 +15,7 @@
         android:layout_width="131dp"
         android:layout_height="131dp"
         android:paddingLeft="147dp"
-        android:paddingLeft="146dp"
+        android:paddingRight="146dp"
         android:layout_alignParentBottom="true"
         android:background="@android:color/transparent" />
     
