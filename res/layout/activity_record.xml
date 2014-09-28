@@ -6,13 +6,13 @@
     android:orientation="horizontal"
     tools:context=".RecordActivity" >
 
-    <TextView
+    <EditText
         android:id="@+id/speechToText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:minHeight="40dp"
-        android:text="[user's speech to text]"
+        android:text=""
         android:textSize="28sp" />
 
     <Button
@@ -46,5 +46,13 @@
         android:layout_marginBottom="22dp"
         android:onClick="sendButtonPressed"
         android:text="Send" />
+    
+    <TextView
+        android:id="@+id/debugText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_alignParentTop="true"
+        android:textSize="14sp"/>
 
 </RelativeLayout>

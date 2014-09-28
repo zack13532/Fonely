@@ -1,30 +1,25 @@
 package com.poopie.fonely;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-
-import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import java.io.InputStream;
 
 import android.speech.RecognizerIntent;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.media.MediaPlayer;
-import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Build;
@@ -32,7 +27,7 @@ import android.os.Build;
 
 public class RecordActivity extends ActionBarActivity {
 	
-	private MobileServiceClient mClient;
+	private TextView dbgTV; // For displaying debugging text
 	
 	//constants
 	protected static final int RESULT_SPEECH = 1;
@@ -40,24 +35,21 @@ public class RecordActivity extends ActionBarActivity {
 	private static int fileNum = 1;
 	
 	//variables
-	private Button recButt; //record button
 	private Button playRecButt; //play recording button 
 	private Button sendButt; 
-	private boolean recButtPressed; //whether or not Rec button has been pressed 
+	private EditText speechText; 
 	private boolean playButtPressed; 
-	private MediaRecorder recorder;
 	private MediaPlayer player; 
 	private String audioFile; 
-	//private TextView text; 
 	
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB) @Override
-	//TODO: sendButt.setActivated(false) fucks out for some reason, check above line later... need
-	// to talk about compatibility issues
+    private File tmpAudio; 
 	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB) @Override	
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_record);
 		
+		// Create folder for storing audio files
 		File folder = new File(Environment.getExternalStorageDirectory() + "/sound");
 		boolean success = true;
 		if (!folder.exists()) {
@@ -69,109 +61,24 @@ public class RecordActivity extends ActionBarActivity {
             Log.e(LOG_TAG, "Folder creation failed"); 
 		}
 		
-		//initialize buttons
-		recButt=(Button)findViewById(R.id.recButt);
+		//initialize buttons and textviews
 		playRecButt=(Button)findViewById(R.id.playbackButt); 
 		sendButt=(Button)findViewById(R.id.sendButt); 
+		speechText = (EditText) findViewById(R.id.speechToText);
 		playRecButt.setVisibility(View.INVISIBLE); 
 		sendButt.setActivated(false); 
+		dbgTV = (TextView) findViewById(R.id.debugText);
 		
 		//initialize variables
-		recButtPressed=false; 
 		playButtPressed=false; 
 		
 		//initialize audio file-related stuff
 		player=new MediaPlayer(); 
-		recorder=new MediaRecorder(); 
 		audioFile = "fonelyClip";
+		tmpAudio = new File(Environment.getExternalStorageDirectory() + "/sound/speechrecog.amr");
 
-		try {
-			mClient = new MobileServiceClient(
-				      "https://fonely.azure-mobile.net/",
-				      "MPcDeQZZkvxBYoJJYUtodwJYfjHUoA36",
-				      this
-				);
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-//<<<<<<< Updated upstream
-		
-		
-		//text = (TextView) findViewById(R.id.text);
-		/* #TODO mobile service client
-		try {
-			mClient = new MobileServiceClient(
-				      "https://fonely.azure-mobile.net/",
-				      "MPcDeQZZkvxBYoJJYUtodwJYfjHUoA36",
-				      this
-				);
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
-//=======
-		 	
-//>>>>>>> Stashed changes
 	}
 	
-	//when record button is pressed 
-	@SuppressLint("NewApi") @TargetApi(Build.VERSION_CODES.HONEYCOMB) public void recordButtonPressed(View view)
-	{
-		//if pressed first time, start recording
-		if(!recButtPressed){
-			recButtPressed=true; 
-			recButt.setText("Stop"); 
-			playRecButt.setVisibility(View.INVISIBLE); 
-			sendButt.setActivated(false); 
-			startRecording(); 
-			//TODO implement the animation/audio squiggle
-		}
-		
-		//else if button has already been pressed, end recording 
-		else{
-		
-			recButtPressed=false; 
-			recButt.setText("Rerecord"); 
-			playRecButt.setVisibility(View.VISIBLE); 
-			sendButt.setActivated(true); 
-			stopRecording(); 
-			//TODO implement speechToText
-			
-		}
-		
-	}
-	
-	//starts recording
-	private void startRecording(){
-
-		fileNum++;
-		
-		recorder=new MediaRecorder(); 
-        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-	    recorder.setOutputFile(Environment.getExternalStorageDirectory().getPath() + "/sound/" + audioFile + fileNum);
-        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-
-	    try {
-            recorder.prepare();
-        } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() failed");
-            e.printStackTrace();
-        }
-
-        recorder.start();
-	}
-	
-	//stops recording
-	private void stopRecording(){
-		
-		recorder.stop();
-	    recorder.release();
-	    recorder = null;
-	}
-
 	//when playBack button is pressed
 	public void playbackButtonPressed(View view)
 	{
@@ -180,7 +87,7 @@ public class RecordActivity extends ActionBarActivity {
 		if(!playButtPressed){
 			
 			playButtPressed=true; 
-			startPlayback(); 
+			startPlayback(Environment.getExternalStorageDirectory().getPath() + "/sound/" + audioFile + fileNum); 
 		}
 		
 		//stop playing clip. 
@@ -192,10 +99,11 @@ public class RecordActivity extends ActionBarActivity {
 	}
 	
 	//starts playing data file
-	private void startPlayback(){
+	private void startPlayback(String path){
 		
 		try {
-            player.setDataSource(Environment.getExternalStorageDirectory().getPath() + "/sound/" + audioFile + fileNum);
+            player.reset();
+            player.setDataSource(path);
             player.prepare();
             player.start();
         } catch (IOException e) {
@@ -209,70 +117,95 @@ public class RecordActivity extends ActionBarActivity {
 		 player.release();
 	     player = null;
 	}
-/*	
-	//when submit button is pressed
-	//#TODO Actually send the TextView file 
-	//convert sound to text 
-	public void submitButtonPressed(View view){
+	
+	public void startSpeechRecognition()
+	{
+		   // Fire an intent to start the speech recognition activity.
+		   Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+		   // secret parameters that when added provide audio url in the result
+		   intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
+		   intent.putExtra("android.speech.extra.GET_AUDIO", true);
+
+		   try
+		   {
+			   startActivityForResult(intent, RESULT_SPEECH);
+		   } catch (ActivityNotFoundException a)
+		   {
+		       Toast t = Toast.makeText(getApplicationContext(),
+		                "Opps! Your device doesn't support Speech to Text",
+		                Toast.LENGTH_SHORT);
+		       t.show();
+		   }
+	}
+
+	/*
+	  	0 AMR 4.75 13
+		1 AMR 5.15 14
+		2 AMR 5.9 16
+		3 AMR 6.7 18
+		4 AMR 7.4 20
+		5 AMR 7.95 21
+		6 AMR 10.2 27
+		7 AMR 12.2 32
+	 */
+	
+	// handle result of speech recognition
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+	    tmpAudio.delete();
+	    
+	    int[] bitrates = {13, 14, 16, 18, 20, 21, 27, 32};
+	    
+	    // the resulting text is in the getExtras:
+	    speechText.setText(data.getExtras().getStringArrayList(RecognizerIntent.EXTRA_RESULTS).get(0));
+	    // the recording url is in getData:
+	    Uri audioUri = data.getData();
+	    ContentResolver contentResolver = getContentResolver();
+	    
+	    try {
+			InputStream filestream = contentResolver.openInputStream(audioUri);
+			FileOutputStream audioFileOut =
+					new FileOutputStream(tmpAudio.getAbsolutePath());
+			int bytesread = 0;
+			byte[] buffer = new byte[1024];
+			while((bytesread = filestream.read(buffer)) > 0)
+			{
+				audioFileOut.write(buffer, 0, bytesread);
+			}
+			
+			filestream.close();
+			audioFileOut.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	    
+	    startPlayback(tmpAudio.getAbsolutePath());
+	}
 		
-<<<<<<< Updated upstream
-		 Intent intent = new Intent(
-                 RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-
-         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
-
-         try {
-             startActivityForResult(intent, RESULT_SPEECH);
-             //text.setText("");
-         } catch (ActivityNotFoundException a) {
-             Toast t = Toast.makeText(getApplicationContext(),
-                     "Opps! Your device doesn't support Speech to Text",
-                     Toast.LENGTH_SHORT);
-             t.show();
-         }
-=======
->>>>>>> Stashed changes
+	//when submit button is pressed
+	//convert sound to text 
+	public void recordButtonPressed(View view){
+		
+		 startSpeechRecognition();
+	}
+	
+	public void sendButtonPressed(View view)
+	{
+		dbgTV.setText("send button pressed");
+	    // CALL TO SQL SERVER TO SUBMIT AUDIO FILE
+		tmpAudio.delete();
 	}
 	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-*/
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
+	public void onDestroy()
+	{
+		super.onDestroy();
+		tmpAudio.delete();
 	}
 
-
 }
-/*
-public class Item {
-    public String Id;
-    public String Text;
-}
-Copy to clipboard
-In the same activity where you defined mClient, add the following code:
 
-Item item = new Item();
-item.Text = "Awesome item";
-mClient.getTable(Item.class).insert(item, new TableOperationCallback<Item>() {
-    public void onCompleted(Item entity, Exception exception, ServiceFilterResponse response) {
-          if (exception == null) {
-                // Insert succeeded
-          } else {
-                // Insert failed
-          }
-    }
-});
-*/
