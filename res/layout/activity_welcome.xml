@@ -17,7 +17,8 @@
         android:paddingLeft="147dp"
         android:paddingRight="146dp"
         android:layout_alignParentBottom="true"
-        android:background="@android:color/transparent" />
+        android:background="@android:color/transparent"
+        android:onClick="randomGameButtonPressed" />
     
     <ImageView
         android:id="@+id/imageView2"
