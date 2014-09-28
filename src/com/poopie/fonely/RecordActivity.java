@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+
 import android.speech.RecognizerIntent;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -30,7 +32,7 @@ import android.os.Build;
 
 public class RecordActivity extends ActionBarActivity {
 	
-	//private MobileServiceClient mClient;
+	private MobileServiceClient mClient;
 	
 	//constants
 	protected static final int RESULT_SPEECH = 1;
@@ -82,7 +84,17 @@ public class RecordActivity extends ActionBarActivity {
 		player=new MediaPlayer(); 
 		recorder=new MediaRecorder(); 
 		audioFile = "fonelyClip";
-		
+
+		try {
+			mClient = new MobileServiceClient(
+				      "https://fonely.azure-mobile.net/",
+				      "MPcDeQZZkvxBYoJJYUtodwJYfjHUoA36",
+				      this
+				);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 //<<<<<<< Updated upstream
 		
 		
